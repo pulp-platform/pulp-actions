@@ -1,0 +1,73 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+
+name: 'Gitlab CI'
+description: 'Mirror repository to a Gitlab remote and check CI pipeline status'
+
+inputs:
+  # Mandatory arguments
+  domain:
+    description: 'Domain of remote Gitlab instance'
+    required: true
+  repo:
+    description: 'Full group path of mirror repository'
+    required: true
+  token:
+    description: 'Access token for mirror repository'
+    required: true
+  # Optional arguments (sensible defaults below)
+  api-version:
+    description: 'Version of Gitlab API to use'
+    required: true
+    default: "v4"
+  retry-count:
+    description: 'Number of polls before pipeline spawn is deemed a failure'
+    required: true
+    default: 12
+  retry-period:
+    description: 'Period of polls in seconds before pipeline spawns'
+    required: true
+    default: 10
+  poll-count:
+    description: 'Number of polls before running pipeline is deemed a failure'
+    required: true
+    default: 720
+  poll-period:
+    description: 'Period of polls in seconds while pipeline is running'
+    required: true
+    default: 10
+
+runs:
+  using: "composite"
+  steps:
+    - name: Full checkout
+      shell: bash
+      run: git clone --bare https://token:${{ github.token }}@github.com/${{ github.repository }} ${{ github.workspace }}
+    - name: Push to mirror
+      shell: bash
+      run: |
+        git remote add gitlab https://token:${{ inputs.token }}@${{ inputs.domain }}/${{ inputs.repo }}
+        git push --force --mirror gitlab
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    - name: Install Python requirements
+      shell: bash
+      # PIP has very noisy, uncollapsible output, making following script output hard to read
+      run: pip install --disable-pip-version-check --quiet --progress-bar off requests urllib3
+    - name: Poll results
+      shell: bash
+      # Pull request SHAs point to a merged commit that is not mirrored
+      run: |
+        cd ${{ github.action_path }}
+        export SHA=${{ github.sha }}
+        if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then export SHA=${{ github.event.pull_request.head.sha }}; fi
+        ./gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
