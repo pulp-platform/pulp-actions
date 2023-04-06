@@ -1,0 +1,29 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+name: 'Install Bender'
+description: 'Install the specified or latest version of Bender.'
+
+inputs:
+  # Optional argument
+  version:
+    description: 'Bender version to install (default: latest)'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Bender
+      shell: bash
+      run: |
+        sudo mkdir -p /tools/bender && sudo chmod 777 /tools/bender
+        if [ ! -x "$(command -v bender)" ] || [[ ! "$(bender --version)" = "bender ${{ inputs.version }}" ]]; then
+          cd /tools/bender && curl --proto '=https' --tlsv1.2 -sSf https://pulp-platform.github.io/bender/init | bash -s -- ${{ inputs.version }}
+        else
+          echo "install-bender: bender ${{ inputs.version }} already installed."
+        fi
+        echo "PATH=/tools/bender:$PATH" >> ${GITHUB_ENV}
