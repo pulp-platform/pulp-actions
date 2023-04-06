@@ -7,6 +7,13 @@
 name: 'Bender up-to-date'
 description: 'Check if all files specified in Bender.yml exist.'
 
+inputs:
+  # Optional argument
+  bender-version:
+    description: 'Bender version to install (default: latest)'
+    required: false
+    default: ''
+
 runs:
   using: "composite"
   steps:
@@ -15,13 +22,9 @@ runs:
       with:
         submodules: recursive
     - name: Install Bender
-      shell: bash
-      run: |
-        sudo mkdir -p /tools/bender && sudo chmod 777 /tools/bender
-        cd /tools/bender && curl --proto '=https' --tlsv1.2 -sSf https://pulp-platform.github.io/bender/init | bash -s -- ${BENDER_VERSION}
-        echo "PATH=$PATH:/tools/bender" >> ${GITHUB_ENV}
-      env:
-        BENDER_VERSION: 0.27.1
+      uses: pulp-platform/pulp-actions/install-bender@v2
+      with:
+        version: ${{ inputs.bender-version }}
     - name: Check bender up-to-date
       shell: bash
       run: |
