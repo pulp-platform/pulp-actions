@@ -1,0 +1,28 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+name: 'Bender up-to-date'
+description: 'Check if all files specified in Bender.yml exist.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Install Bender
+      shell: bash
+      run: |
+        sudo mkdir -p /tools/bender && sudo chmod 777 /tools/bender
+        cd /tools/bender && curl --proto '=https' --tlsv1.2 -sSf https://pulp-platform.github.io/bender/init | bash -s -- ${BENDER_VERSION}
+        echo "PATH=$PATH:/tools/bender" >> ${GITHUB_ENV}
+      env:
+        BENDER_VERSION: 0.27.1
+    - name: Check bender up-to-date
+      shell: bash
+      run: |
+        ${{ github.action_path }}/bender-up-to-date.sh
