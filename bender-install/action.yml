@@ -20,4 +20,4 @@ runs:
     - name: bender install
       shell: bash
       run: |
-        ${{ github.action_path }}/bender-install.sh
+        ${{ github.action_path }}/bender-install.sh ${{ inputs.version }}

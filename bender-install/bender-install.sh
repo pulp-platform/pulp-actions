@@ -8,18 +8,24 @@
 
 set -e
 
+# Parse args
+VERSION=""
+if [ $# -eq 1 ]; then
+  VERSION=$1
+fi
+
 # Check for existing bender installation
 if [ -x "$(command -v bender)" ]; then
-  if [[ "${{ inputs.version }}" = "" ]] || [[ "$(bender --version)" = "bender ${{ inputs.version }}" ]]; then
+  if [[ $VERSION = "" ]] || [[ "$(bender --version)" = "bender $VERSION" ]]; then
     echo "bender-install: $(bender --version) already installed."
     exit 0
   else
-    echo "bender-install: bender ${{ inputs.version }} requested but $(bender --version) is already installed. Aborting."
+    echo "bender-install: bender $VERSION requested but $(bender --version) is already installed. Aborting."
     exit 1
   fi
 fi
 
 # Install bender
 sudo mkdir -p /tools/bender && sudo chmod 777 /tools/bender
-cd /tools/bender && curl --proto '=https' --tlsv1.2 -sSf https://pulp-platform.github.io/bender/init | bash -s -- ${{ inputs.version }}
+cd /tools/bender && curl --proto '=https' --tlsv1.2 -sSf https://pulp-platform.github.io/bender/init | bash -s -- $VERSION
 echo "PATH=/tools/bender:$PATH" >> ${GITHUB_ENV}
