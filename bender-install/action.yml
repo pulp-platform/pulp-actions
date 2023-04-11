@@ -4,7 +4,7 @@
 
 # Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
 
-name: 'Install Bender'
+name: 'Bender Install'
 description: 'Install the specified or latest version of Bender.'
 
 inputs:
@@ -17,7 +17,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install Bender
+    - name: bender install
       shell: bash
       run: |
         sudo mkdir -p /tools/bender && sudo chmod 777 /tools/bender
