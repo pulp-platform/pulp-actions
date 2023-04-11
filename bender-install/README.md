@@ -4,7 +4,7 @@ This action installs the specified or latest version of Bender.
 
 ## Action usage
 
-Simply add the action to your desired upstream workflow. Indicate the desired version with the `version` argument, or omit it to install the latest version. For example:
+Simply add the action to your desired upstream workflow. Indicate the desired version with the `version` argument, or omit it to install the latest version. If no version is specified and bender is already installed, the existing version will be used. For example:
 
 ```yaml
 name: bender-install
