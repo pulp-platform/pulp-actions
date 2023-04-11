@@ -17,7 +17,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: bender install
+    - name: Bender install
       shell: bash
       run: |
         ${{ github.action_path }}/bender-install.sh ${{ inputs.version }}
