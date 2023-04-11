@@ -6,6 +6,8 @@
 #
 # Nils Wistoff <nwistoff@iis.ee.ethz.ch>
 
+set -e
+
 # Check for existing bender installation
 if [ -x "$(command -v bender)" ]; then
   if [[ "${{ inputs.version }}" = "" ]] || [[ "$(bender --version)" = "bender ${{ inputs.version }}" ]]; then
