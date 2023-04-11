@@ -21,8 +21,8 @@ runs:
       uses: actions/checkout@v3
       with:
         submodules: recursive
-    - name: Install Bender
-      uses: pulp-platform/pulp-actions/install-bender@v2
+    - name: Install bender
+      uses: pulp-platform/pulp-actions/bender-install@v2
       with:
         version: ${{ inputs.bender-version }}
     - name: Check bender up-to-date
