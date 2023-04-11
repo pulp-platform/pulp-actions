@@ -6,6 +6,8 @@
 #
 # Nils Wistoff <nwistoff@iis.ee.ethz.ch>
 
+set -e
+
 RESULT=0
 for FILE in $(bender script -n flist | sed "/^\+\S*$/d")
 do
