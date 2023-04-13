@@ -1,0 +1,15 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "pulp-actions-lint-license-matcher",
+      "pattern": [
+        {
+          "regexp": "^ERROR: (.+):(\\d+)(.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      ]
+    }
+  ]
+}
