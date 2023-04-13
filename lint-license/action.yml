@@ -50,7 +50,7 @@ runs:
         git checkout ${{ inputs.linters_revision }}
     - name: Generate config
       shell: bash
-      run: ${{ github.action_path }}/gen_config.py ${{ inputs.match_regex }} "${{ inputs.license }}" "${{ inputs.exclude_paths }}" > "${{ github.workspace }}/cfg.hjson"
+      run: ${{ github.action_path }}/gen_config.py "${{ github.workspace }}/cfg.hjson" ${{ inputs.match_regex }} "${{ inputs.license }}" "${{ inputs.exclude_paths }}"
     - name: Check license
       shell: bash
       run: |

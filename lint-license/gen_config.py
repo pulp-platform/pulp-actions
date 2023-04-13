@@ -9,14 +9,20 @@
 import sys
 from mako.template import Template
 
-def main(match_regex, license: str, exclude_paths: str = ''):
-    print(f'''
-{{
-    licence: \'\'\'{license}\'\'\',
-    match_regex: "{str(bool(match_regex)).lower()}"
-    exclude_paths: [ {exclude_paths.replace("\n", ",").strip()} ],
-}}
-    ''')
+
+def main(out_file: str, match_regex, license: str, exclude_paths: str = '') -> int:
+    exclude_list = exclude_paths.strip().split()
+    exclude_str = ', '.join(f"'{e}'" for e in exclude_list)
+    config = f'''{{
+        licence: \'\'\'{license}\'\'\'
+        match_regex: "{str(bool(match_regex)).lower()}"
+        exclude_paths: [ {exclude_str} ]
+    }}'''
+    print(f'Generated linter config:\n\n{config}')
+    with open(out_file, 'w+') as f:
+        f.write(config)
+    return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(*sys.argv[1:]))
