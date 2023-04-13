@@ -1,0 +1,23 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+name: 'Bender Install'
+description: 'Install the specified or latest version of Bender.'
+
+inputs:
+  # Optional argument
+  version:
+    description: 'Bender version to install (default: latest)'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Bender install
+      shell: bash
+      run: |
+        ${{ github.action_path }}/bender-install.sh ${{ inputs.version }}
