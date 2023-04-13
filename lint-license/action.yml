@@ -1,0 +1,59 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+
+name: 'Lint License'
+description: 'Run lowRISC license linter with a specified configuration'
+
+inputs:
+  license:
+    description: 'License header to check for (escape double quotes and bash special characters)'
+    required: true
+  # Optional arguments (sensible defaults below)
+  match_regex:
+    description: 'Whether license header is a regex'
+    required: true
+    default: true
+  exclude_paths:
+    description: 'File paths to exclude'
+    required: true
+    default: ''
+  matcher:
+    description: 'Matcher file for linter'
+    required: true
+    default: ${{ github.action_path }}/matcher.json
+  linters_revision:
+    description: 'Revision of `lowRISC/misc-linters` to use'
+    required: true
+    default: '20220921_01'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install Python requirements
+      shell: bash
+      run: pip install hjson mako pyyaml tabulate yapf
+    - name: Intall lowRISC linters
+      shell: bash
+      run: |
+        cd ${{ github.workspace }}
+        git clone https://github.com/lowRISC/misc-linters.git
+        cd misc-linters
+        git checkout ${{ inputs.linters_revision }}
+    - name: Generate config
+      shell: bash
+      run: ${{ github.action_path }}/gen_config.py ${{ inputs.match_regex }} "${{ inputs.license }}" "${{ inputs.exclude_paths }}" > "${{ github.workspace }}/cfg.hjson"
+    - name: Check license
+      shell: bash
+      run: |
+        echo "::add-matcher::${{ github.action_path }}/matcher.json"
+        bash -c "set -e; ${{ github.workspace }}/misc-linters/licence-checker/licence-checker.py --config \"${{ github.workspace }}/cfg.hjson\""
+        echo "::remove-matcher owner=pulp-actions-lint-license-matcher::"
