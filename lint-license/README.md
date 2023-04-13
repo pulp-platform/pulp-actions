@@ -24,11 +24,11 @@ jobs:
       - name: lint license
         uses: pulp-platform/pulp-actions/lint-license@v2
         with:
-        license: |
-          Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
-          (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
-          SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
-        exclude_paths: |
-          sw/include/regs/*.h
-          sw/include/geninfo.h
+          license: |
+            Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
+            (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
+            SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
+          exclude_paths: |
+            sw/include/regs/*.h
+            sw/include/geninfo.h
 ```
