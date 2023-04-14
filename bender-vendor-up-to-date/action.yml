@@ -1,0 +1,31 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+name: 'Bender vendor up-to-date'
+description: 'Check if the bender-vendored dependencies are up-to-date.'
+
+inputs:
+  # Optional argument
+  bender-version:
+    description: 'Bender version to install (default: latest)'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Install bender
+      uses: pulp-platform/pulp-actions/bender-install@v2
+      with:
+        version: ${{ inputs.bender-version }}
+    - name: Check bender vendor up-to-date
+      shell: bash
+      run: |
+        bender vendor diff --err_on_diff
