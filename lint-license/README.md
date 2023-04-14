@@ -7,8 +7,8 @@ This action installs and runs lowRISC's [license linter](https://github.com/lowR
 Simply add the action to your desired upstream workflow. Indicate the license header with the `license` argument, and whether this is a regex with `match_regex` (defaults to true). You can optionally specify:
 
 * `exclude_paths`: path expressions to exclude
-* `linters-revison`: The revision of `lowRISC/misc-linters` to use
-* `matcher`: An alternative matcher used to report violations
+* `linters_revison`: the revision of `lowRISC/misc-linters` to use
+* `matcher`: an alternative matcher used to report violations
 
 Here is an example workflow using this action:
 

@@ -12,6 +12,16 @@ To use an action in your workflow, you must add its subdirectory to the reposito
 uses: pulp-platform/pulp-actions/gitlab-ci@v1
 ```
 
+## Recommended third-party actions
+
+We deliberately do not recreate or wrap functionality already provided by well-designed existing actions. Here is a list of third-party actions recommended for `pulp-platform` repositories:
+
+* Linting:
+    * C/C++: `DoozyX/clang-format-lint-action`
+    * (System)Verilog: `chipsalliance/verible-linter-action`
+    * Python: `py-actions/flake8`
+    * Rust: `mbrobbel/rustfmt-check`
+
 ## License
 
 The code in this repository is licensed under Apache 2.0 (see LICENSE).
