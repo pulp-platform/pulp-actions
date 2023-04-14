@@ -44,16 +44,17 @@ runs:
     - name: Intall lowRISC linters
       shell: bash
       run: |
-        cd ${{ github.workspace }}
+        mkdir -p ${{ runner.temp }}/pulp-actions/lint-license
+        cd ${{ runner.temp }}/pulp-actions/lint-license
         git clone https://github.com/lowRISC/misc-linters.git
         cd misc-linters
         git checkout ${{ inputs.linters_revision }}
     - name: Generate config
       shell: bash
-      run: ${{ github.action_path }}/gen_config.py "${{ github.workspace }}/cfg.hjson" ${{ inputs.match_regex }} "${{ inputs.license }}" "${{ inputs.exclude_paths }}"
+      run: ${{ github.action_path }}/gen_config.py "${{ runner.temp }}/pulp-actions/lint-license/cfg.hjson" ${{ inputs.match_regex }} "${{ inputs.license }}" "${{ inputs.exclude_paths }}"
     - name: Check license
       shell: bash
       run: |
         echo "::add-matcher::${{ github.action_path }}/matcher.json"
-        bash -c "set -e; ${{ github.workspace }}/misc-linters/licence-checker/licence-checker.py --config \"${{ github.workspace }}/cfg.hjson\""
+        bash -c "set -e; ${{ runner.temp }}/pulp-actions/lint-license/misc-linters/licence-checker/licence-checker.py --config \"${{ runner.temp }}/pulp-actions/lint-license/cfg.hjson\""
         echo "::remove-matcher owner=pulp-actions-lint-license-matcher::"
