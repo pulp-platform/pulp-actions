@@ -1,0 +1,39 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+
+name: 'RISC-V GCC install'
+description: 'Installs a nightly build of the RISC-V GCC toolchain.'
+
+inputs:
+  # Optional arguments (sensible defaults below)
+  nightly-date:
+    description: 'Date of nightly release (default: 2023.03.14)'
+    required: true
+    default: '2023.03.14'
+  distro:
+    description: 'Identifier of distribution (default: ubuntu-22.04)'
+    required: true
+    default: 'ubuntu-22.04'
+  target:
+    description: 'Target architecture and platform (default: riscv64-elf)'
+    required: true
+    default: 'riscv64-elf'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install RISC-V GCC toolchain
+      shell: bash
+      run: |
+        mkdir -p ${{ runner.temp }}/pulp-actions/riscv-gcc-install
+        cd ${{ runner.temp }}/pulp-actions/riscv-gcc-install
+        RISCV_GCC_NAME=riscv-gcc-${{ inputs.nightly-date }}-${{ inputs.distro }}-${{ inputs.target }}
+        curl -Ls -o ${RISCV_GCC_NAME}.tar.gz https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${{ inputs.nightly-date }}/${{ inputs.target }}-${{ inputs.distro }}-nightly-${{ inputs.nightly-date }}-nightly.tar.gz
+        sudo chmod 777 ${RISCV_GCC_NAME}.tar.gz
+        sudo mkdir -p ${RISCV_GCC_NAME} && sudo chmod 777 ${RISCV_GCC_NAME}
+        tar -C ${RISCV_GCC_NAME} -xf ${RISCV_GCC_NAME}.tar.gz --strip-components=1
+        rm ${RISCV_GCC_NAME}.tar.gz
+        echo "PATH=$PATH:${RISCV_GCC_NAME}/bin" >> ${GITHUB_ENV}
