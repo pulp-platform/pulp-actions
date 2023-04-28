@@ -15,7 +15,7 @@ import urllib.parse
 
 
 def main(sha: str, token: str, domain: str, repo: str, api_version: str,
-         retry_count: int, retry_period: int, poll_count: int, poll_period: int):
+         retry_count: int, retry_period: int, poll_count: int, poll_period: int, manual_poll_count: int, manual_err: int):
     # Derive pipeline URL
     pipelines = f'https://{domain}/api/{api_version}/projects/{urllib.parse.quote_plus(repo)}/pipelines'
 
@@ -39,6 +39,10 @@ def main(sha: str, token: str, domain: str, repo: str, api_version: str,
         if pipeline['status'] == 'success':
             print(f'[{i*poll_period}s] Pipeline success! See {pipeline["web_url"]}')
             return 0
+        elif pipeline['status'] == 'manual':
+            manual_poll_count -= 1
+            if manual_poll_count <= 0:
+                return manual_err
         elif pipeline['status'] in ('failed', 'canceled', 'skipped'):
             print(f'[{i*poll_period}s] Pipeline failure! See {pipeline["web_url"]}')
             return 1

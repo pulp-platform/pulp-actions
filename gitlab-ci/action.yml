@@ -39,6 +39,14 @@ inputs:
     description: 'Period of polls in seconds while pipeline is running'
     required: true
     default: 10
+  manual-poll-count:
+    description: 'Number of polls allowed when GitLab is waiting in "manual" state'
+    required: true
+    default: 720
+  manual-poll-err:
+    description: 'Code to return when manual-poll-count reaches zero'
+    required: true
+    default: 1
 
 runs:
   using: "composite"
@@ -70,4 +78,4 @@ runs:
         cd ${{ github.action_path }}
         export SHA=${{ github.sha }}
         if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then export SHA=${{ github.event.pull_request.head.sha }}; fi
-        ./gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
+        ./gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }} ${{ inputs.manual-poll-count }} ${{ inputs.manual-poll-err }}
