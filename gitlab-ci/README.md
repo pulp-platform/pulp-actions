@@ -8,9 +8,11 @@ First, create a Gitlab mirror repo and grant your Github upstream repo developer
 
 1. Create a *blank target repo* on your Gitlab instance. For PULP members, use the `github-mirror` group, preserve the upstream repo name, and disable unnecessary Gitlab features in *Settings* → *General*.
 
-2. Obtain a *project access token* to the Gitlab mirror. In *Settings* → *Access Tokens*, create a token called `github-ci` with role *Developer*, a reasonable expiry date, and all available scopes. After generation, copy the token from the top hidden text field to a temporary location; it will become inaccessible once you leave the page.
+2. Create a default branch called `main`. Go to *Settings* → *Repository* → *Protected branches* and make sure the branch is unprotected. Unprotect it otherwise.
 
-3. Add the project access token as a *secret* to your Github upstream repository. Go to *Settings* → *Secrets and variables* → *Actions* and add the token as a new repository secret called `GITLAB_TOKEN`. Again, the secret will become write-only once you leave the page.
+3. Obtain a *project access token* to the Gitlab mirror. In *Settings* → *Access Tokens*, create a token called `github-ci` with role *Developer*, a reasonable expiry date, and all available scopes. After generation, copy the token from the top hidden text field to a temporary location; it will become inaccessible once you leave the page.
+
+4. Add the project access token as a *secret* to your Github upstream repository. Go to *Settings* → *Secrets and variables* → *Actions* and add the token as a new repository secret called `GITLAB_TOKEN`. Again, the secret will become write-only once you leave the page.
 
 ## Action usage
 
