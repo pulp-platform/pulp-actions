@@ -21,6 +21,7 @@ We deliberately do not recreate or wrap functionality already provided by well-d
     * (System)Verilog: `chipsalliance/verible-linter-action`
     * Python: `py-actions/flake8`
     * Rust: `mbrobbel/rustfmt-check`
+    * YAML: `ibiqlik/action-yamllint`
 
 ## License
 
