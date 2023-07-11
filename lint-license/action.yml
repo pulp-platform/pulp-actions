@@ -28,6 +28,10 @@ inputs:
     description: 'Revision of `lowRISC/misc-linters` to use'
     required: true
     default: '20220921_01'
+  patches:
+    description: 'A list of patches from the patches/ directory to apply to lowRISC/misc-linters'
+    required: true
+    default: ''
 
 runs:
   using: "composite"
@@ -49,6 +53,9 @@ runs:
         git clone https://github.com/lowRISC/misc-linters.git
         cd misc-linters
         git checkout ${{ inputs.linters_revision }}
+        git config user.email "colluca@iis.ee.ethz.ch"
+        git config user.name "Luca Colagrande"
+        ${{ github.action_path }}/apply_patches.py ${{ runner.temp }}/pulp-actions/lint-license/misc-linters ${{ inputs.patches }} --patch-dir=${{ github.action_path }}/patches
     - name: Generate config
       shell: bash
       run: ${{ github.action_path }}/gen_config.py "${{ runner.temp }}/pulp-actions/lint-license/cfg.hjson" ${{ inputs.match_regex }} "${{ inputs.license }}" "${{ inputs.exclude_paths }}"
