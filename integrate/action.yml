@@ -1,0 +1,124 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+name: 'Integrate'
+description: 'Test the integration of this IP into a GitHub-hosted dependent.'
+
+inputs:
+  # Mandatory arguments
+  ip-name:
+    description: 'Name of this IP as per Bender.yml'
+    required: true
+  org:
+    description: 'GitHub organization of the dependent repo'
+    required: true
+  repo:
+    description: 'Name of the dependent repo'
+    required: true
+  base-ref:
+    description: 'Dependent repo ref to start from'
+    required: true
+  token:
+    description: 'Access token for dependent repo'
+    required: true
+  # Optional argument
+  lifetime:
+    description: 'Maximum lifetime (in days) of dependent CI commits. Older commits will be deleted. 0 disables auto-deletion.'
+    required: true
+    default: 0
+  api-version:
+    description: 'Version of GitHub REST API to use'
+    required: true
+    default: '2022-11-28'
+  poll-count:
+    description: 'Number of polls before dependent pipeline is deemed a failure'
+    required: true
+    default: 1080
+  poll-period:
+    description: 'Period of polls in seconds'
+    required: true
+    default: 10
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    - name: Install Python requirements
+      shell: bash
+      # PIP has very noisy, uncollapsible output, making following script output hard to read
+      run: pip install --disable-pip-version-check --quiet --progress-bar off requests urllib3
+    - name: checkout dependent
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.org }}/${{ inputs.repo }}
+        ref: ${{ inputs.base-ref }}
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+    - name: Clean up dependent CI
+      shell: bash
+      run: |
+        now=$(date +%s)
+        lifetime=$((${{ inputs.lifetime }} * 24 * 60 * 60))
+        if [ "$lifetime" -gt 0 ]; then
+            git branch -r --list "origin/${{ inputs.ip-name }}-ci/*" | sed "s|  origin/||" | while read branch; do
+                date=$(git log -1 --format=%ct "origin/$branch")
+                age=$(($now - $date))
+                if [ $age -gt $lifetime ]; then
+                    echo "Deleting branch $branch"
+                    git push origin :"$branch"
+                else
+                    echo "Keeping branch $branch"
+                fi
+            done
+        fi
+    - name: Trigger dependent CI
+      shell: bash
+      run: |
+        if git rev-parse --verify --quiet origin/${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA"); then
+            echo "Branch ${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA") already exists. Skipping trigger."
+        else
+            sed -i "/  ${{ inputs.ip-name }}:/{n;s/.*/    revision: $GITHUB_SHA/;}" Bender.lock
+            git checkout -b ${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA")
+            git add Bender.lock
+            git -c user.name='${{ inputs.ip-name }} CI Bot' -c user.email='${{ inputs.ip-name }}@bot.com' commit -m "${{ inputs.ip-name }} regression test"
+            git push --set-upstream origin ${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA")
+            echo "Triggered workflows at https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F$(git rev-parse --short $GITHUB_SHA)+"
+        fi
+    - name: Check dependent CI
+      shell: bash
+      run: |
+        python3 -c "
+        import time
+        import requests
+        poll_count = ${{ inputs.poll-count }}
+        poll_period = ${{ inputs.poll-period }}
+        check_runs_url = f'https://api.github.com/repos/${{ inputs.org }}/${{ inputs.repo }}/commits/${{ inputs.ip-name }}-ci/$(git rev-parse --short $GITHUB_SHA)/check-runs'
+        headers = {'Accept': 'application/vnd.github+json',
+                   'Authorization': 'Bearer ${{ inputs.token }}',
+                   'X-GitHub-Api-Version': '${{ inputs.api-version }}'}
+        for i in range(1, poll_count+1):
+            pending = 0
+            response = requests.get(check_runs_url, headers=headers).json()
+            for r in response['check_runs']:
+                 if r['status'] in ('queued', 'in_progress'):
+                     pending+=1
+                 if r['conclusion'] == 'failure':
+                     print(f'[{i*poll_period}s] Workflow failure! See https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F$(git rev-parse --short $GITHUB_SHA)+')
+                     exit(1)
+            if response['total_count'] > 0 and not pending:
+                print(f'[{i*poll_period}s] All workflows passed! See https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F$(git rev-parse --short $GITHUB_SHA)+')
+                exit(0)
+            print(f'[{i*poll_period}s] Waiting for workflows...')
+            time.sleep(poll_period)
+        else:
+            print(f'[{poll_count*poll_period}s] Workflow completion timeout!')
+            exit(2)"
+    - name: Clean up
+      shell: bash
+      run: git push origin :${{ inputs.ip-name }}-ci/$(git rev-parse --short $GITHUB_SHA)
