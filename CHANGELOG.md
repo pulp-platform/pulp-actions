@@ -6,6 +6,10 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.2.0 - 2024-02-22
+### Added
+- Add `integrate` action.
+
 ## 2.1.0 - 2023-07-11
 ### Added
 - Add recommended YAML linter to `README.md`
