@@ -60,9 +60,31 @@ runs:
         ref: ${{ inputs.base-ref }}
         token: ${{ inputs.token }}
         fetch-depth: 0
+    - name: Set vars
+      id: vars
+      shell: bash
+      run: |
+        # Set vars for this job
+        # On a pull_request_target event, retrieve the trigger repo and sha
+        if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
+            head_sha_long=${{ github.event.pull_request.head.sha }}
+            head_repo=${{ github.event.pull_request.head.repo.html_url }}.git
+        else
+            head_sha_long=$GITHUB_SHA
+            head_repo="${{ github.server_url }}/${{ github.repository }}.git"
+        fi
+        # Precompute short hash and workflow url
+        head_sha_short=$(git rev-parse --short "$head_sha_long")
+        workflow_url="https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F${head_sha_short}+"
+        # Save computed vars
+        echo "head_repo=$head_repo" >> $GITHUB_OUTPUT
+        echo "head_sha_long=$head_sha_long" >> $GITHUB_OUTPUT
+        echo "head_sha_short=$head_sha_short" >> $GITHUB_OUTPUT
+        echo "workflow_url=$workflow_url" >> $GITHUB_OUTPUT
     - name: Clean up dependent CI
       shell: bash
       run: |
+        # Clean up CI branches in the dependent that are past their lifetimes
         now=$(date +%s)
         lifetime=$((${{ inputs.lifetime }} * 24 * 60 * 60))
         if [ "$lifetime" -gt 0 ]; then
@@ -80,25 +102,34 @@ runs:
     - name: Trigger dependent CI
       shell: bash
       run: |
-        if git rev-parse --verify --quiet origin/${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA"); then
-            echo "Branch ${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA") already exists. Skipping trigger."
+        # Trigger the dependent CI
+        # Verify that CI branch does not exit yet in dependent
+        if git rev-parse --verify --quiet origin/${{ inputs.ip-name }}-ci/${{ steps.vars.outputs.head_sha_short }}; then
+            echo "Branch ${{ inputs.ip-name }}-ci/${{ steps.vars.outputs.head_sha_short }} already exists. Skipping trigger."
         else
-            sed -i "/  ${{ inputs.ip-name }}:/{n;s/.*/    revision: $GITHUB_SHA/;}" Bender.lock
-            git checkout -b ${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA")
+            # Overwrite dependency hash and url in Bender.lock
+            gawk -i inplace '
+            /${{ inputs.ip-name }}:/ {print; dep_found=1; next}
+            dep_found && /revision:/ && !rev_done {print "    revision: ${{ steps.vars.outputs.head_sha_long }}"; rev_done=1; next}
+            dep_found && /Git:/ && !git_done { print "      Git: ${{ steps.vars.outputs.head_repo }}"; git_done=1; next}
+            {print}' Bender.lock
+            # Push patched Bender.lock to CI branch in dependent
+            git checkout -b ${{ inputs.ip-name }}-ci/${{ steps.vars.outputs.head_sha_short }}
             git add Bender.lock
             git -c user.name='${{ inputs.ip-name }} CI Bot' -c user.email='${{ inputs.ip-name }}@bot.com' commit -m "${{ inputs.ip-name }} regression test"
-            git push --set-upstream origin ${{ inputs.ip-name }}-ci/$(git rev-parse --short "$GITHUB_SHA")
-            echo "Triggered workflows at https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F$(git rev-parse --short $GITHUB_SHA)+"
+            git push --set-upstream origin ${{ inputs.ip-name }}-ci/${{ steps.vars.outputs.head_sha_short }}
+            echo "Triggered workflows at ${{ steps.vars.outputs.workflow_url }}"
         fi
     - name: Check dependent CI
       shell: bash
       run: |
+        # Check dependent CI
         python3 -c "
         import time
         import requests
         poll_count = ${{ inputs.poll-count }}
         poll_period = ${{ inputs.poll-period }}
-        check_runs_url = f'https://api.github.com/repos/${{ inputs.org }}/${{ inputs.repo }}/commits/${{ inputs.ip-name }}-ci/$(git rev-parse --short $GITHUB_SHA)/check-runs'
+        check_runs_url = f'https://api.github.com/repos/${{ inputs.org }}/${{ inputs.repo }}/commits/${{ inputs.ip-name }}-ci/${{ steps.vars.outputs.head_sha_short }}/check-runs'
         headers = {'Accept': 'application/vnd.github+json',
                    'Authorization': 'Bearer ${{ inputs.token }}',
                    'X-GitHub-Api-Version': '${{ inputs.api-version }}'}
@@ -108,11 +139,12 @@ runs:
             for r in response['check_runs']:
                  if r['status'] in ('queued', 'in_progress'):
                      pending+=1
-                 if r['conclusion'] == 'failure':
-                     print(f'[{i*poll_period}s] Workflow failure! See https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F$(git rev-parse --short $GITHUB_SHA)+')
+                 if r['conclusion'] in ('failure', 'cancelled'):
+                     conclusion = r['conclusion']
+                     print(f'[{i*poll_period}s] Workflow {conclusion}! See ${{ steps.vars.outputs.workflow_url }}')
                      exit(1)
             if response['total_count'] > 0 and not pending:
-                print(f'[{i*poll_period}s] All workflows passed! See https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F$(git rev-parse --short $GITHUB_SHA)+')
+                print(f'[{i*poll_period}s] All workflows passed! See ${{ steps.vars.outputs.workflow_url }}')
                 exit(0)
             print(f'[{i*poll_period}s] Waiting for workflows...')
             time.sleep(poll_period)
@@ -121,4 +153,4 @@ runs:
             exit(2)"
     - name: Clean up
       shell: bash
-      run: git push origin :${{ inputs.ip-name }}-ci/$(git rev-parse --short $GITHUB_SHA)
+      run: git push origin :${{ inputs.ip-name }}-ci/${{ steps.vars.outputs.head_sha_short }}

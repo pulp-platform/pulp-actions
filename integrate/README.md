@@ -4,6 +4,8 @@ This action integrates the triggering IP into a dependent and checks the depende
 
 Internally, it clones the dependent repo, patches the `Bender.lock` to point to the version of the IP that triggered the action, pushes to the dependent repo, and polls the dependent's workflows.
 
+> :warning: :warning: **Pwn hazard**. If you include this action without precautions, anyone can access your GitHub secrets. Configure your repo to **require approval to run workflows on pull requests from forks and carefully review the changes before approving!**
+
 > :warning: **Loop hazard**. Be careful not to create cyclic trigger jobs, otherwise the servers might crash.
 
 ## Preparation
