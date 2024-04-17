@@ -4,8 +4,6 @@ This action integrates the triggering IP into a dependent and checks the depende
 
 Internally, it clones the dependent repo, patches the `Bender.lock` to point to the version of the IP that triggered the action, pushes to the dependent repo, and polls the dependent's workflows.
 
-> :warning: :warning: **Pwn hazard**. If you include this action without precautions, anyone can access your GitHub secrets. Configure your repo to **require approval to run workflows on pull requests from forks and carefully review the changes before approving!**
-
 > :warning: **Loop hazard**. Be careful not to create cyclic trigger jobs, otherwise the servers might crash.
 
 ## Preparation
@@ -25,14 +23,14 @@ Once this is done, you can add the action to your desired upstream workflow. We 
 ```yaml
 name: integration
 
-on: [ push, pull_request_target, workflow_dispatch ]
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   cheshire-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 200
     # Skip on forks due to missing secrets.
-    if: github.repository == 'pulp-platform/cva6'
+    if: github.repository == 'pulp-platform/cva6' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     steps:
       - name: Integrate into cheshire
         uses: pulp-platform/pulp-actions/integrate@v2.2.0

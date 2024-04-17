@@ -65,14 +65,8 @@ runs:
       shell: bash
       run: |
         # Set vars for this job
-        # On a pull_request_target event, retrieve the trigger repo and sha
-        if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
-            head_sha_long=${{ github.event.pull_request.head.sha }}
-            head_repo=${{ github.event.pull_request.head.repo.html_url }}.git
-        else
-            head_sha_long=$GITHUB_SHA
-            head_repo="${{ github.server_url }}/${{ github.repository }}.git"
-        fi
+        head_sha_long=$GITHUB_SHA
+        head_repo="${{ github.server_url }}/${{ github.repository }}.git"
         # Precompute short hash and workflow url
         head_sha_short=$(git rev-parse --short "$head_sha_long")
         workflow_url="https://github.com/${{ inputs.org }}/${{ inputs.repo }}/actions?query=branch%3A${{ inputs.ip-name }}-ci%2F${head_sha_short}+"
