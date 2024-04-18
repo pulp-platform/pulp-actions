@@ -6,6 +6,11 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.3.0 - 2024-04-18
+### Fixed
+- Print API error responses for `gitlab-ci`
+- Fail `integrate` action on failed dependent run
+
 ## 2.2.0 - 2024-02-22
 ### Added
 - Add `integrate` action.
