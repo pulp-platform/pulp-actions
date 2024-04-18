@@ -22,6 +22,9 @@ def main(sha: str, token: str, domain: str, repo: str, api_version: str,
     # Wait for pipeline to spawn
     for i in range(1, retry_count+1):
         response = requests.get(pipelines, headers={'PRIVATE-TOKEN': token}).json()
+        if 'error' in response:
+            print(f'Error: \'{response["error"]}\' error response received to Gitlab API request to get pipeline status. {response["error_description"]} Gitlab API scope: \'{response["scope"]}\'')
+            return 4
         try:
             next(p for p in response if p['sha'] == sha)
             break
@@ -35,6 +38,9 @@ def main(sha: str, token: str, domain: str, repo: str, api_version: str,
     # Wait for pipeline to complete
     for i in range(1, poll_count+1):
         response = requests.get(pipelines, headers={'PRIVATE-TOKEN': token}).json()
+        if 'error' in response:
+            print(f'Error: \'{response["error"]}\' error response received to Gitlab API request to get pipeline status. {response["error_description"]} Gitlab API scope: \'{response["scope"]}\'')
+            return 4
         pipeline = next(p for p in response if p['sha'] == sha)
         if pipeline['status'] == 'success':
             print(f'[{i*poll_period}s] Pipeline success! See {pipeline["web_url"]}')
