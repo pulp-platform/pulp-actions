@@ -6,6 +6,11 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.4.0 - 2024-06-17
+### Fixed
+- Fix pagination issues in `gitlab-ci` through direct queries
+- Improve error handling in `gitlab-ci`
+
 ## 2.3.0 - 2024-04-18
 ### Fixed
 - Print API error responses for `gitlab-ci`
