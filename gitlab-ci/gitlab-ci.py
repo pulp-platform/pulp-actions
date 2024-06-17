@@ -16,19 +16,24 @@ import urllib.parse
 
 def main(sha: str, token: str, domain: str, repo: str, api_version: str,
          retry_count: int, retry_period: int, poll_count: int, poll_period: int):
-    # Derive pipeline URL
-    pipelines = f'https://{domain}/api/{api_version}/projects/{urllib.parse.quote_plus(repo)}/pipelines'
+    # Derive pipeline request URL. We want only pipelines with our SHA in descending ID (creation)
+    # order, so the most recent pipeline matching our SHA is the first in the list.
+    pipelines = f'https://{domain}/api/{api_version}/projects/{urllib.parse.quote_plus(repo)}/pipelines?sha={sha}&order_by=id&sort=desc'
 
     # Wait for pipeline to spawn
     for i in range(1, retry_count+1):
         response = requests.get(pipelines, headers={'PRIVATE-TOKEN': token}).json()
         if 'error' in response:
-            print(f'Error: \'{response["error"]}\' error response received to Gitlab API request to get pipeline status. {response["error_description"]} Gitlab API scope: \'{response["scope"]}\'')
+            print(f'Gitlab API Error: \'{response["error"]}\', '
+                  f'description: \'{response["error_description"] if "error_description" in response else "<no description>"}\', '
+                  f'scope: \'{response["scope"] if "scope" in response else "<no scope>"}\'')
             return 4
-        try:
-            next(p for p in response if p['sha'] == sha)
+        if len(response):
+            if not isinstance(response, list):
+                print(f'Error: received non-list response: {response}')
+                return 5
             break
-        except StopIteration:
+        else:
             print(f'[{i*retry_period}s] No pipeline yet for SHA {sha}')
             time.sleep(retry_period)
     else:
@@ -39,9 +44,11 @@ def main(sha: str, token: str, domain: str, repo: str, api_version: str,
     for i in range(1, poll_count+1):
         response = requests.get(pipelines, headers={'PRIVATE-TOKEN': token}).json()
         if 'error' in response:
-            print(f'Error: \'{response["error"]}\' error response received to Gitlab API request to get pipeline status. {response["error_description"]} Gitlab API scope: \'{response["scope"]}\'')
+            print(f'Gitlab API Error: \'{response["error"]}\', '
+                  f'description: \'{response["error_description"] if "error_description" in response else "<no description>"}\', '
+                  f'scope: \'{response["scope"] if "scope" in response else "<no scope>"}\'')
             return 4
-        pipeline = next(p for p in response if p['sha'] == sha)
+        pipeline = response[0]
         if pipeline['status'] == 'success':
             print(f'[{i*poll_period}s] Pipeline success! See {pipeline["web_url"]}')
             return 0
