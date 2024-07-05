@@ -6,6 +6,10 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.4.1 - 2024-07-05
+### Fixed
+- Ensure patches argument is optional in `lint-license`
+
 ## 2.4.0 - 2024-06-17
 ### Fixed
 - Fix pagination issues in `gitlab-ci` through direct queries
