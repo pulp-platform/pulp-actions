@@ -20,7 +20,7 @@ def main():
     )
     parser.add_argument(
         'patches',
-        nargs='+',
+        nargs='*',
         help='List of patches to apply')
     parser.add_argument(
         '--patch-dir',
@@ -32,11 +32,12 @@ def main():
     patch_dir = args.patch_dir
 
     # Apply patches
-    for patch in patches:
-        patchfile = Path(patch)
-        if patch_dir:
-            patchfile = Path(patch_dir) / patchfile
-        os.system(f'git -C {repo} am {patchfile}')
+    if patches:
+        for patch in patches:
+            patchfile = Path(patch)
+            if patch_dir:
+                patchfile = Path(patch_dir) / patchfile
+            os.system(f'git -C {repo} am {patchfile}')
 
 
 if __name__ == '__main__':
