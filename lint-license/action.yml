@@ -30,7 +30,7 @@ inputs:
     default: '20220921_01'
   patches:
     description: 'A list of patches from the patches/ directory to apply to lowRISC/misc-linters'
-    required: true
+    required: false
     default: ''
 
 runs:
