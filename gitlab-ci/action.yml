@@ -52,13 +52,14 @@ runs:
         git remote add gitlab https://token:${{ inputs.token }}@${{ inputs.domain }}/${{ inputs.repo }}
         git push --force --mirror gitlab
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Install Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
+        cache: 'pip'
     - name: Install Python requirements
       shell: bash
       # PIP has very noisy, uncollapsible output, making following script output hard to read
