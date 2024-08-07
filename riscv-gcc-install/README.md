@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: RISC-V GCC install
-        uses: pulp-platform/pulp-actions/riscv-gcc-install@v2
+        uses: pulp-platform/pulp-actions/riscv-gcc-install@v2.4.1 # update version as needed, not autoupdated
         with:
           distro: ubuntu-22.04
           nightly-date: '2023.03.14'

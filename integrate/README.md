@@ -33,7 +33,7 @@ jobs:
     if: github.repository == 'pulp-platform/cva6' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     steps:
       - name: Integrate into cheshire
-        uses: pulp-platform/pulp-actions/integrate@v2.2.0
+        uses: pulp-platform/pulp-actions/integrate@v2.4.1 # update version as needed, not autoupdated
         with:
           ip-name: cva6
           org: pulp-platform

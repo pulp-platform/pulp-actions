@@ -9,7 +9,7 @@ There is a subdirectory for each action with a README providing setup instructio
 To use an action in your workflow, you must add its subdirectory to the repository path in the `uses` clause, e.g.:
 
 ```yaml
-uses: pulp-platform/pulp-actions/gitlab-ci@v1
+uses: pulp-platform/pulp-actions/gitlab-ci@v2.4.1
 ```
 
 ## Recommended third-party actions
