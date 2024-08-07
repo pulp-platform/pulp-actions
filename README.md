@@ -22,6 +22,8 @@ We deliberately do not recreate or wrap functionality already provided by well-d
     * Python: `py-actions/flake8`
     * Rust: `mbrobbel/rustfmt-check`
     * YAML: `ibiqlik/action-yamllint`
+* Miscellaneous:
+    * Git up-to-date: `mmontes11/diff-porcelain`
 
 ## License
 
