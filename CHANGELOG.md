@@ -6,6 +6,15 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.4.2 - 2024-09-11
+### Added
+- Add recommendation of `diff-porcelain` to README.md
+- Add `pip` cache
+
+### Changed
+- Update `checkout` and `setup-python` subactions
+- Update examples in action READMEs with newer versions and notice regarding updates
+
 ## 2.4.1 - 2024-07-05
 ### Fixed
 - Ensure patches argument is optional in `lint-license`
