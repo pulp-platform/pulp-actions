@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: lint license
-        uses: pulp-platform/pulp-actions/lint-license@v2
+        uses: pulp-platform/pulp-actions/lint-license@v2.4.1 # update version as needed, not autoupdated
         with:
           license: |
             Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).

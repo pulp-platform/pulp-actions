@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: bender install
-        uses: pulp-platform/pulp-actions/bender-install@v2
+        uses: pulp-platform/pulp-actions/bender-install@v2.4.1 # update version as needed, not autoupdated
         with:
           version: 0.27.1
 ```
