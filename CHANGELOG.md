@@ -6,6 +6,10 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.4.3 - 2024-05-21
+### Fixed
+- Work around pip caching without `requirements.txt`
+
 ## 2.4.2 - 2024-09-11
 ### Added
 - Add recommendation of `diff-porcelain` to README.md
