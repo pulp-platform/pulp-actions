@@ -45,6 +45,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Work around setup-python cache issue
+      # see https://github.com/actions/setup-python/issues/807
+      if: hashFiles('**/requirements.txt', '**/pyproject.toml') == ''
+      shell: bash
+      run: touch ./requirements.txt
     - name: Install Python
       uses: actions/setup-python@v5
       with:
