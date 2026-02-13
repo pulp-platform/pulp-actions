@@ -46,7 +46,7 @@ while IFS= read -r FILE; do
     [ -z "$FILE" ] && continue
 
     if [ ! -f "$FILE" ]; then
-        echo "bender-up-to-date: $FILE not found."
+        printf "bender-up-to-date: %s not found.\n" "$FILE"
         RESULT=1
     fi
 done < <(printf "%s\n" "$BENDER_OUTPUT" | grep "${grep_args[@]}" || true)
