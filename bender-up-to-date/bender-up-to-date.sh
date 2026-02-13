@@ -9,7 +9,10 @@
 
 set -e
 
-[[ $(bender --version) =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]
+if ! [[ $(bender --version 2>/dev/null) =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+    echo "Error: Could not determine bender version. Is bender installed?" >&2
+    exit 1
+fi
 current_version="${BASH_REMATCH[1]}"
 
 bender_args=("script" "--no-deps")
