@@ -20,7 +20,7 @@ grep_args=("-v" "-e" "^+")
 
 # Version 0.30.0 introduces metadata to `script` command output to assist with traceability.
 # A dedicated flag `--no-source-annotations` is introduced to suppress such outputs.
-if printf '%s\n%s' "0.30.0" "$current_version" | sort -C -V; then
+if printf '%s\n' "0.30.0" "$current_version" | sort -C -V; then
     # Version >= 0.30.0
     bender_args+=("--no-source-annotations")
 fi
@@ -32,10 +32,12 @@ bender_args+=("flist")
 # and this block will catch it and exit immediately.
 if ! BENDER_OUTPUT=$(bender "${bender_args[@]}"); then
     exit 1
+elif  printf '%s\n' "0.29.0" "$current_version" | sort -C -V; then
+    # If we reach here, Bender >= 0.29.0 succeeded (all files exist).
+    exit 0
 fi
 
-# If we reach here, either Bender >= 0.29.0 succeeded (all files exist),
-# or Bender < 0.29.0 succeeded (but might silently have missing files).
+# If we reach here Bender < 0.29.0 succeeded (but might silently have missing files).
 # We run the manual check to catch any missing files for older versions.
 RESULT=0
 
