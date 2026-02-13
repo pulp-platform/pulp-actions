@@ -6,7 +6,7 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
-## 2.4.4 - 2026-05-21
+## 2.4.4 - 2026-02-13
 ### Fixed
 - `bender-up-to-date`: Fix compatibility with bender v0.30.0+
 
