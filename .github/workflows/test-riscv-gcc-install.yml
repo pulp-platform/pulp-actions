@@ -1,0 +1,54 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Tim Fischer <fischeti@iis.ee.ethz.ch>
+
+name: Test RISC-V GCC Install
+
+on:
+  push:
+    paths:
+      - .github/workflows/test-riscv-gcc-install.yml
+      - riscv-gcc-install/**
+  pull_request:
+    paths:
+      - .github/workflows/test-riscv-gcc-install.yml
+      - riscv-gcc-install/**
+  workflow_dispatch:
+
+jobs:
+  test-riscv-gcc-install:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nightly-date: "2026.02.13"
+            target: riscv64-elf
+            distro: ubuntu-22.04
+          - nightly-date: "2025.09.28"
+            target: riscv64-elf
+            distro: ubuntu-22.04
+          - nightly-date: "2023.03.14"
+            target: riscv64-elf
+            distro: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install RISC-V GCC
+        uses: ./riscv-gcc-install
+        with:
+          nightly-date: ${{ matrix.nightly-date }}
+          distro: ${{ matrix.distro }}
+          target: ${{ matrix.target }}
+
+      - name: Check compiler is on PATH
+        run: |
+          command -v riscv64-unknown-elf-gcc
+
+      - name: Check compiler runs
+        run: |
+          riscv64-unknown-elf-gcc --version
