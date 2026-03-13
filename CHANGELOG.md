@@ -6,6 +6,18 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 
+## 2.4.5 - 2026-03-13
+### Fixed
+- `riscv-gcc-install`: Fix asset link for newer releases by probing multiple asset name formats
+
+### Changed
+- `gitlab-ci`: Bump Python version from 3.9 to 3.12
+- `gitlab-ci`: Replace `pip` with `uv` for dependency management
+- `gitlab-ci`: Remove redundant recursive checkout after mirror push
+- `gitlab-ci`: Add `flush=True` to status messages for immediate log output
+- `gitlab-ci`: Add clickable pipeline link at the start of the action log
+- `gitlab-ci`: Remove explicit `--force` from `git push` (implied by `--mirror`)
+
 ## 2.4.4 - 2026-02-13
 ### Fixed
 - `bender-up-to-date`: Fix compatibility with bender v0.30.0+
