@@ -48,6 +48,8 @@ def main(sha: str, token: str, domain: str, repo: str, api_version: str,
                   f'scope: \'{response["scope"] if "scope" in response else "<no scope>"}\'')
             return 4
         pipeline = response[0]
+        if i == 1:
+            print(f'[ 0s] Pipeline started: {pipeline["web_url"]}', flush=True)
         if pipeline['status'] == 'success':
             print(f'[{i*poll_period}s] Pipeline success! See {pipeline["web_url"]}')
             return 0
