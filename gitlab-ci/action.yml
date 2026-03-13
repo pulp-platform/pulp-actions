@@ -50,30 +50,17 @@ runs:
       shell: bash
       run: |
         git remote add gitlab https://token:${{ inputs.token }}@${{ inputs.domain }}/${{ inputs.repo }}
-        git push --force --mirror gitlab
-    - name: Checkout
-      uses: actions/checkout@v4
+        git push --mirror gitlab
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
       with:
-        submodules: recursive
-    - name: Work around setup-python cache issue
-      # see https://github.com/actions/setup-python/issues/807
-      if: hashFiles('**/requirements.txt', '**/pyproject.toml') == ''
-      shell: bash
-      run: touch ./requirements.txt
-    - name: Install Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
-        cache: 'pip'
-    - name: Install Python requirements
-      shell: bash
-      # PIP has very noisy, uncollapsible output, making following script output hard to read
-      run: pip install --disable-pip-version-check --quiet --progress-bar off requests urllib3
+        version: "0.10"
+        python-version: 3.12
+        enable-cache: false
     - name: Poll results
       shell: bash
       # Pull request SHAs point to a merged commit that is not mirrored
       run: |
-        cd ${{ github.action_path }}
         export SHA=${{ github.sha }}
         if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then export SHA=${{ github.event.pull_request.head.sha }}; fi
-        ./gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
+        uv run --with requests ${{ github.action_path }}/gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
