@@ -2,7 +2,8 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Author: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+# Authors: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+#          Tim Fischer <fischeti@iis.ee.ethz.ch>
 
 name: 'RISC-V GCC install'
 description: 'Installs a nightly build of the RISC-V GCC toolchain.'
@@ -28,13 +29,41 @@ runs:
     - name: Install RISC-V GCC toolchain
       shell: bash
       run: |
+        set -euo pipefail
+
         RISCV_GCC_PATH=${{ runner.temp }}/pulp-actions/riscv-gcc-install
         mkdir -p ${RISCV_GCC_PATH}
         cd ${RISCV_GCC_PATH}
-        RISCV_GCC_NAME=riscv-gcc-${{ inputs.nightly-date }}-${{ inputs.distro }}-${{ inputs.target }}
-        curl -Ls -o ${RISCV_GCC_NAME}.tar.gz https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${{ inputs.nightly-date }}/${{ inputs.target }}-${{ inputs.distro }}-nightly-${{ inputs.nightly-date }}-nightly.tar.gz
-        sudo chmod 777 ${RISCV_GCC_NAME}.tar.gz
-        sudo mkdir -p ${RISCV_GCC_NAME} && sudo chmod 777 ${RISCV_GCC_NAME}
-        tar -C ${RISCV_GCC_NAME} -xf ${RISCV_GCC_NAME}.tar.gz --strip-components=1
-        rm ${RISCV_GCC_NAME}.tar.gz
+
+        RELEASE_SELECTOR='${{ inputs.nightly-date }}'
+        DISTRO='${{ inputs.distro }}'
+        TARGET='${{ inputs.target }}'
+
+        RISCV_GCC_NAME=riscv-gcc-${RELEASE_SELECTOR}-${DISTRO}-${TARGET}
+        mkdir -p "${RISCV_GCC_NAME}"
+
+        asset_candidates=(
+          "https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${RELEASE_SELECTOR}/${TARGET}-${DISTRO}-gcc.tar.xz"
+          "https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${RELEASE_SELECTOR}/${TARGET}-${DISTRO}-gcc-nightly-${RELEASE_SELECTOR}-nightly.tar.xz"
+          "https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${RELEASE_SELECTOR}/${TARGET}-${DISTRO}-nightly-${RELEASE_SELECTOR}-nightly.tar.gz"
+        )
+
+        ASSET_URL=
+        ASSET_NAME=
+        for candidate in "${asset_candidates[@]}"; do
+          if curl -fsLI "${candidate}" > /dev/null; then
+            ASSET_URL="${candidate}"
+            ASSET_NAME="${candidate##*/}"
+            break
+          fi
+        done
+
+        if [ -z "${ASSET_URL}" ]; then
+          echo "Could not find a matching RISC-V GCC asset for ${TARGET}/${DISTRO} and release ${RELEASE_SELECTOR}." >&2
+          exit 1
+        fi
+
+        curl -fsSL -o "${ASSET_NAME}" "${ASSET_URL}"
+        tar -C "${RISCV_GCC_NAME}" -xf "${ASSET_NAME}" --strip-components=1
+        rm -f "${ASSET_NAME}"
         echo "PATH=$PATH:${RISCV_GCC_PATH}/${RISCV_GCC_NAME}/bin" >> ${GITHUB_ENV}
