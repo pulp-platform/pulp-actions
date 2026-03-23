@@ -1,5 +1,8 @@
 # Lint License
 
+> [!WARNING]
+> This action is deprecated. It is recommended to migrate to [REUSE](https://reuse.software/) for license compliance instead. REUSE is an industry standard based on SPDX identifiers, requires no external tool setup, and can be integrated with a single step via the official [`fsfe/reuse-action`](https://github.com/fsfe/reuse-action).
+
 This action installs and runs lowRISC's [license linter](https://github.com/lowRISC/misc-linters/tree/master/licence-checker), which checks all source files in a repository except specified paths for a license header. The header may be a regular expression.
 
 ## Action usage

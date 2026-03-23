@@ -36,6 +36,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Deprecation warning
+      shell: bash
+      run: |
+        echo "::warning::lint-license is deprecated. Consider migrating to REUSE (https://reuse.software/) for license compliance. It is an industry standard based on SPDX identifiers and can be integrated with a single step via fsfe/reuse-action (https://github.com/fsfe/reuse-action)."
     - name: Checkout
       uses: actions/checkout@v4
     - name: Work around setup-python cache issue
