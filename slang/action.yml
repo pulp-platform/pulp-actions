@@ -37,6 +37,7 @@ runs:
           enable-cache: false
 
       - name: Generate file list
+        shell: bash
         run: bender script flist-plus ${{ inputs.bender-flags }} > sources.flist
 
       - name: Run slang
