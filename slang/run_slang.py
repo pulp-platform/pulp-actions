@@ -19,6 +19,7 @@ def main():
     args = (
         f"{sys.argv[0]}"
         f"{flags}"
+        f" -f sources.flist"
         f" --error-limit 0"
         f" --diag-json {output_json}"
     )
