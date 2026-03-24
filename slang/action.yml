@@ -42,7 +42,7 @@ runs:
 
       - name: Run slang
         shell: bash
-        run: uv run --with pyslang run_slang.py "${{ inputs.slang-flags }}" slang_diags.json
+        run: uv run --with pyslang ${{ github.action_path }}/run_slang.py "${{ inputs.slang-flags }}" slang_diags.json
 
       - name: Setup reviewdog
         uses: reviewdog/action-setup@v1
@@ -54,7 +54,7 @@ runs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 slang_to_rdjson.py slang_diags.json \
+          uv run ${{ github.action_path }}/slang_to_rdjson.py slang_diags.json \
             | reviewdog -f=rdjson \
                 -name=slang \
                 -reporter=${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }} \
