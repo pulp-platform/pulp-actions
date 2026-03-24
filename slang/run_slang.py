@@ -7,8 +7,8 @@ from pyslang import CommandLineOptions, Driver
 
 
 def main():
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <flags>", file=sys.stderr)
+    if len(sys.argv) != 3:
+        print(f"Usage: {sys.argv[0]} <flags> <output_json>", file=sys.stderr)
         sys.exit(1)
 
     flags, output_json = sys.argv[1], sys.argv[2]
