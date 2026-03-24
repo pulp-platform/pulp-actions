@@ -20,8 +20,11 @@ def main():
         f" -f sources.flist"
         f" --error-limit 0"
         f" --diag-json {output_json}"
-        f"{flags}"
+        f" {flags}"
     )
+
+    print(args)
+
     if not driver.parseCommandLine(args, CommandLineOptions()):
         sys.exit(1)
 
