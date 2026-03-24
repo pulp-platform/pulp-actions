@@ -1,0 +1,61 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+name: 'slang'
+description: 'Build project with slang and report errors and warnings.'
+
+inputs:
+   # Optional arguments
+   bender-flags:
+      description: 'Flags to pass to bender'
+      required: false
+      default: ''
+   slang-flags:
+      description: 'Flags to pass to slang'
+      required: false
+      default: ''
+
+runs:
+   using: 'composite'
+   steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install bender
+        uses: pulp-platform/pulp-actions/bender-install@v2.4.5
+
+      - name: Install pyslang
+        run: pip install pyslang
+
+      - name: Generate file list
+        run: bender script flist-plus ${{ inputs.bender-flags }} > sources.flist
+
+      - name: Run slang
+        run: python3 run_slang.py "${{ inputs.slang-flags }}" slang_diags.json
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Report slang diagnostics
+        uses: reviewdog/action-slang@v1
+        with:
+         reviewdog_version: latest
+
+      - name: Run reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 slang_to_rdjson.py slang_diags.json \
+            | reviewdog -f=rdjson \
+                -name=slang \
+                -reporter=${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }} \
+                -filter-mode=nofilter \
+                -fail-level=error
+            | true
