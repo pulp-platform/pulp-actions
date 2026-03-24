@@ -24,8 +24,6 @@ def main():
         f" {flags}"
     )
 
-    print(args)
-
     if not driver.parseCommandLine(args, CommandLineOptions()):
         sys.exit(1)
 
