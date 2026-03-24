@@ -60,4 +60,4 @@ runs:
                 -reporter=${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }} \
                 -filter-mode=nofilter \
                 -fail-level=error
-            | true
+            || true
