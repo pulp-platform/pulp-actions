@@ -17,6 +17,7 @@ def main():
     driver.addStandardArgs()
 
     args = (
+        f"slang"
         f" -f sources.flist"
         f" --error-limit 0"
         f" --diag-json {output_json}"
