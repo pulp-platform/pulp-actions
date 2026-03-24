@@ -17,11 +17,10 @@ def main():
     driver.addStandardArgs()
 
     args = (
-        f"{sys.argv[0]}"
-        f"{flags}"
         f" -f sources.flist"
         f" --error-limit 0"
         f" --diag-json {output_json}"
+        f"{flags}"
     )
     if not driver.parseCommandLine(args, CommandLineOptions()):
         sys.exit(1)
