@@ -8,6 +8,9 @@ name: 'slang'
 description: 'Build project with slang and report errors and warnings.'
 
 inputs:
+   token:
+      description: 'GitHub token for reviewdog. Pass secrets.GITHUB_TOKEN from the calling workflow.'
+      required: true
    slang-flags:
       description: 'Flags to pass to slang. Must at least include the file list.'
       required: true
@@ -36,7 +39,7 @@ runs:
         shell: bash
         continue-on-error: true
         env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.token }}
         run: |
           uv run ${{ github.action_path }}/slang_to_rdjson.py slang_diags.json \
             | reviewdog -f=rdjson \
