@@ -34,11 +34,13 @@ runs:
 
       - name: Run reviewdog
         shell: bash
+        continue-on-error: true
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           uv run ${{ github.action_path }}/slang_to_rdjson.py slang_diags.json \
             | reviewdog -f=rdjson \
                 -name=slang \
                 -reporter=github-check \
                 -filter-mode=nofilter \
-                -fail-level=error \
-            || true
+                -fail-level=error
