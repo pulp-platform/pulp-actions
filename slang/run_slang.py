@@ -18,10 +18,9 @@ def main():
 
     args = (
         f"slang"
-        f" -f sources.flist"
+        f" {flags}"
         f" --error-limit 0"
         f" --diag-json {output_json}"
-        f" {flags}"
     )
 
     if not driver.parseCommandLine(args, CommandLineOptions()):

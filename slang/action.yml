@@ -8,37 +8,20 @@ name: 'slang'
 description: 'Build project with slang and report errors and warnings.'
 
 inputs:
-   # Optional arguments
-   bender-flags:
-      description: 'Flags to pass to bender'
-      required: false
-      default: ''
    slang-flags:
-      description: 'Flags to pass to slang'
-      required: false
+      description: 'Flags to pass to slang. Must at least include the file list.'
+      required: true
       default: ''
 
 runs:
    using: 'composite'
    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install bender
-        uses: pulp-platform/pulp-actions/bender-install@v2.4.5
-
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.10"
           python-version: 3.12
           enable-cache: false
-
-      - name: Generate file list
-        shell: bash
-        run: bender script flist-plus ${{ inputs.bender-flags }} > sources.flist
 
       - name: Run slang
         shell: bash
@@ -51,13 +34,11 @@ runs:
 
       - name: Run reviewdog
         shell: bash
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           uv run ${{ github.action_path }}/slang_to_rdjson.py slang_diags.json \
             | reviewdog -f=rdjson \
                 -name=slang \
-                -reporter=${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }} \
+                -reporter=github-check \
                 -filter-mode=nofilter \
                 -fail-level=error \
             || true
