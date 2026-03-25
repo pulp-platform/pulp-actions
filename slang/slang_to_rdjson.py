@@ -43,8 +43,10 @@ def convert(slang_diagnostics):
         option_name = d.get("optionName")
         if option_name:
             entry["code"] = {"value": option_name}
-            if entry["severity"] == "WARNING":
-                entry["code"]["url"] = "https://sv-lang.com/warning-ref.html#" + option_name
+            # URLs are currently not rendered properly by github checks.
+            # Consider re-adding once this works
+            # if entry["severity"] == "WARNING":
+                # entry["code"]["url"] = "https://sv-lang.com/warning-ref.html#" + option_name
         diagnostics.append(entry)
 
     return {
