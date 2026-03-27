@@ -15,6 +15,10 @@ inputs:
       description: 'Flags to pass to slang. Must at least include the file list.'
       required: true
       default: ''
+   reviewdog-reporter:
+      description: 'Reporter to use for reviewdog. Defaults to github-check.'
+      required: false
+      default: 'github-check'
 
 runs:
    using: 'composite'
@@ -44,6 +48,6 @@ runs:
           uv run ${{ github.action_path }}/slang_to_rdjson.py slang_diags.json \
             | reviewdog -f=rdjson \
                 -name=slang \
-                -reporter=github-check \
+                -reporter=${{ inputs.reviewdog-reporter }} \
                 -filter-mode=nofilter \
                 -fail-level=error
