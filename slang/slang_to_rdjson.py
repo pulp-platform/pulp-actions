@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+#
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
 """Convert slang JSON diagnostic output to reviewdog rdjson format."""
 
 import json
