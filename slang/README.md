@@ -32,7 +32,7 @@ jobs:
           submodules: recursive
 
       - name: Install bender
-        uses: pulp-platform/pulp-actions/bender-install@v2.5.0
+        uses: pulp-platform/pulp-actions/bender-install@v2.5.0 # update version as needed, not autoupdated
 
       - name: Generate file list
         shell: bash

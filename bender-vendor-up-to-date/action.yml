@@ -22,7 +22,7 @@ runs:
       with:
         submodules: recursive
     - name: Install bender
-      uses: pulp-platform/pulp-actions/bender-install@v2
+      uses: pulp-platform/pulp-actions/bender-install@v2.5.0
       with:
         version: ${{ inputs.bender-version }}
     - name: Check bender vendor up-to-date
