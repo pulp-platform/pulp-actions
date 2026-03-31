@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+#
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Nils Wistoff <nwistoff@iis.ee.ethz.ch>
+
+"""Run slang on a file list via pyslang's Driver API and emit a JSON diagnostic file."""
+
+import sys
+
+from pyslang import CommandLineOptions, Driver
+
+
+def main():
+    if len(sys.argv) != 3:
+        print(f"Usage: {sys.argv[0]} <flags> <output_json>", file=sys.stderr)
+        sys.exit(1)
+
+    flags, output_json = sys.argv[1], sys.argv[2]
+
+    driver = Driver()
+    driver.addStandardArgs()
+
+    args = (
+        f"slang"
+        f" {flags}"
+        f" --error-limit 0"
+        f" --diag-json {output_json}"
+    )
+
+    if not driver.parseCommandLine(args, CommandLineOptions()):
+        sys.exit(1)
+
+    if not driver.processOptions():
+        sys.exit(1)
+
+    driver.parseAllSources()
+    driver.runFullCompilation()
+    # Exit 0 regardless of compile errors so the CI step continues
+    # and reviewdog can annotate the diagnostics.
+
+
+if __name__ == "__main__":
+    main()
