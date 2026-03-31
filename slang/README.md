@@ -32,14 +32,14 @@ jobs:
           submodules: recursive
 
       - name: Install bender
-        uses: pulp-platform/pulp-actions/bender-install@v2.4.5
+        uses: pulp-platform/pulp-actions/bender-install@v2.5.0
 
       - name: Generate file list
         shell: bash
         run: bender script flist-plus -t lint > sources.flist
 
       - name: Run slang
-        uses: pulp-platform/pulp-actions/slang@v2.4.5 # update version as needed, not autoupdated
+        uses: pulp-platform/pulp-actions/slang@v2.5.0 # update version as needed, not autoupdated
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           slang-flags: '-f sources.flist --top my_top -Wextra -Wno-width-trunc'

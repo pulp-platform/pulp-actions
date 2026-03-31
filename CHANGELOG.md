@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add `slang` action.
+
 ### Changed
 - `lint-license`: Add deprecation warning in favor of REUSE
 - Add `fsfe/reuse-action` to recommended third-party actions in `README.md`
