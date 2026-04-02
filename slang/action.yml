@@ -20,12 +20,10 @@ inputs:
       required: false
       default: 'github-check'
    reviewdog-name:
-      description: 'Name for the reviewdog reporter run. Must be unique per job run, otherwise multiple
-         reporters (e.g., spawned by a matrix) may overwrite each others results. To avoid such collisions,
-         the default behavior is to suffix the check_run_id (but other unique names can be chosen instead
-         for better readibility)'
+      description: 'Name for the reviewdog check. Must be unique per job instance; otherwise multiple
+         reporters (e.g., spawned by a matrix) may overwrite each others results. Defaults to slang.'
       required: false
-      default: 'slang-${{ job.check_run_id }}'
+      default: 'slang'
 
 runs:
    using: 'composite'
