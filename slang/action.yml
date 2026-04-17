@@ -19,6 +19,11 @@ inputs:
       description: 'Reporter to use for reviewdog. Defaults to github-check.'
       required: false
       default: 'github-check'
+   reviewdog-name:
+      description: 'Name for the reviewdog check. Must be unique per job instance; otherwise multiple
+         reporters (e.g., spawned by a matrix) may overwrite each others results. Defaults to slang.'
+      required: false
+      default: 'slang'
 
 runs:
    using: 'composite'
@@ -47,7 +52,7 @@ runs:
         run: |
           uv run ${{ github.action_path }}/slang_to_rdjson.py slang_diags.json \
             | reviewdog -f=rdjson \
-                -name=slang \
+                -name=${{ inputs.reviewdog-name }} \
                 -reporter=${{ inputs.reviewdog-reporter }} \
                 -filter-mode=nofilter \
                 -fail-level=error

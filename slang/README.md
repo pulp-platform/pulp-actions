@@ -7,6 +7,9 @@ This action builds a project with [slang](https://github.com/MikePopoloski/slang
 Simply add the action to your desired upstream workflow. Pass `secrets.GITHUB_TOKEN` as the `token` argument and specify the [slang flags](https://sv-lang.com/command-line-ref.html) with `slang-flags` (at minimum a file list). You can optionally specify:
 
 * `reviewdog-reporter`: the reviewdog reporter to use (defaults to `github-check`)
+* `reviewdog-name`: the name for the reviewdog check (defaults to `github-check`). Must be unique per job instance.
+
+> :warning: If you run multiple instances of this action within the same job (e.g., in a matrix), make sure to give `reviewdog-name` a unique value for each instance (e.g., derived from the matrix variables). Otherwise, the instances may overwrite each other's results.
 
 Here is an example workflow using this action:
 
