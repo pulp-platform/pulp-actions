@@ -6,6 +6,7 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## Unreleased
 ### Added
+- `gitlab-ci`: On pipeline failure, fetch traces of failed GitLab jobs and tail them into the GitHub Actions log.
 - `slang`: Add `reviewdog-name` variable to optionally pass a name for the reviewdog check.
 
 ## 2.5.0 - 2026-03-31

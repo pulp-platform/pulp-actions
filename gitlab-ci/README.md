@@ -39,4 +39,6 @@ jobs:
 
 Optional inputs controlling the Gitlab API version and timeouts are available; see `action.yml`.
 
+On pipeline failure, the action automatically fetches the traces of failed GitLab jobs and tails them into the GitHub Actions log (grouped per job), so you can see what went wrong without leaving the Actions UI and without needing personal access to the GitLab instance (the traces are fetched using the same mirror `token` the action already uses). Only the last 200 lines of each job's trace are printed (the failure is usually at the end); see the full trace in GitLab or adjust the parameter in the .yml if you need more context.
+
 Be sure to add a `.gitlab-ci.yml` to your repo; otherwise, the action will time out waiting for a pipeline to spawn on new commits, resulting in failure.
