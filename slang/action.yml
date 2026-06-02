@@ -24,6 +24,14 @@ inputs:
          reporters (e.g., spawned by a matrix) may overwrite each others results. Defaults to slang.'
       required: false
       default: 'slang'
+   pyslang-version:
+      description: 'pyslang version to install, as an exact version number (e.g. "11.0.0").
+         pyslang bundles the slang engine and is released in lockstep with it, so this single
+         value pins both the pyslang and the slang version. Pinned to a known-good release for
+         reproducible runs and to avoid surprise breakage from upstream API changes. run_slang.py
+         currently supports pyslang v10 and v11; bump this only after verifying a newer release.'
+      required: false
+      default: '11.0.0'
 
 runs:
    using: 'composite'
@@ -37,7 +45,7 @@ runs:
 
       - name: Run slang
         shell: bash
-        run: uv run --with pyslang ${{ github.action_path }}/run_slang.py "${{ inputs.slang-flags }}" slang_diags.json
+        run: uv run --with "pyslang==${{ inputs.pyslang-version }}" ${{ github.action_path }}/run_slang.py "${{ inputs.slang-flags }}" slang_diags.json
 
       - name: Setup reviewdog
         uses: reviewdog/action-setup@v1

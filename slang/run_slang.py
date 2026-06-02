@@ -10,7 +10,13 @@
 
 import sys
 
-from pyslang import CommandLineOptions, Driver
+try:
+    # pyslang >= 11 reorganized its bindings into submodules matching the slang
+    # C++ namespaces, so Driver and CommandLineOptions live under pyslang.driver.
+    from pyslang.driver import CommandLineOptions, Driver
+except ImportError:
+    # pyslang <= 10 exposed both at the top level.
+    from pyslang import CommandLineOptions, Driver
 
 
 def main():
