@@ -7,6 +7,10 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 ## Unreleased
 ### Added
 - `slang`: Add `reviewdog-name` variable to optionally pass a name for the reviewdog check.
+- `slang`: Add `pyslang-version` variable to pin the `pyslang` (and thereby slang) version.
+
+### Fixed
+- `slang`: Support pyslang/slang v11 by handling its reorganized module layout (`Driver` and `CommandLineOptions` moved to the `pyslang.driver` submodule), and pin `pyslang` to a known-good release (default `11.0.0`) instead of always installing the latest.
 
 ## 2.5.0 - 2026-03-31
 ### Added

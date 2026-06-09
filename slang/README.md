@@ -8,8 +8,11 @@ Simply add the action to your desired upstream workflow. Pass `secrets.GITHUB_TO
 
 * `reviewdog-reporter`: the reviewdog reporter to use (defaults to `github-check`)
 * `reviewdog-name`: the name for the reviewdog check (defaults to `github-check`). Must be unique per job instance.
+* `pyslang-version`: the exact `pyslang` version to install (defaults to a known-good release).
 
 > :warning: If you run multiple instances of this action within the same job (e.g., in a matrix), make sure to give `reviewdog-name` a unique value for each instance (e.g., derived from the matrix variables). Otherwise, the instances may overwrite each other's results.
+
+> :information_source: This action runs slang through [`pyslang`](https://pypi.org/project/pyslang/), which bundles the slang engine and is released in lockstep with it (pyslang `X.Y` ships slang `X.Y`). The `pyslang-version` input therefore pins **both** the pyslang and the slang version. It defaults to a known-good release for reproducible runs; `run_slang.py` supports both pyslang v10 and v11. To move to a newer slang, verify `run_slang.py` against it and bump `pyslang-version`.
 
 Here is an example workflow using this action:
 
