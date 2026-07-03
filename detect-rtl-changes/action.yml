@@ -1,0 +1,80 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
+
+name: 'Detect RTL changes'
+description: 'Check if the sources reachable from a top-level module changed, via `bender pickle` + content hashing.'
+
+inputs:
+  top:
+    description: 'Space-separated top-level module(s) to trim the source graph to (forwarded to `bender pickle --top`).
+      If omitted, the full (untrimmed) pickle is hashed, i.e. "did anything reachable by Bender change".'
+    required: false
+    default: ''
+  targets:
+    description: 'Space-separated Bender target(s) to include (forwarded to `bender pickle -t`, repeated per target).'
+    required: false
+    default: ''
+  watch-paths:
+    description: 'Space-separated extra path(s) to check for plain (non-Bender-tracked) changes via `git diff`,
+      e.g. the scripts that drive compilation/simulation themselves.'
+    required: false
+    default: ''
+  compare-ref:
+    description: 'Git ref to diff against. Defaults to the pull request base commit for pull_request events, the
+      previous commit for push events, or HEAD^ otherwise.'
+    required: false
+    default: ''
+  bender-version:
+    description: 'Bender version to install (default: latest)'
+    required: false
+    default: ''
+
+outputs:
+  rtl-changed:
+    description: '"true" if sources reachable from `top` changed with respect to `compare-ref`, "false" otherwise.'
+    value: ${{ steps.check.outputs.rtl-changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install bender
+      uses: pulp-platform/pulp-actions/bender-install@v2.5.1
+      with:
+        version: ${{ inputs.bender-version }}
+    - name: Resolve default compare ref
+      id: compare-ref
+      shell: bash
+      run: |
+        ref="${{ inputs.compare-ref }}"
+        if [ -z "$ref" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ref="${{ github.event.pull_request.base.sha }}"
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            ref="${{ github.event.before }}"
+          else
+            ref="HEAD^"
+          fi
+        fi
+        echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    - name: Check if sources changed
+      id: check
+      shell: bash
+      run: |
+        set -f # Disable globbing: `top`/`targets`/`watch-paths` are plain space-separated lists, not globs.
+        args=(--compare-ref "${{ steps.compare-ref.outputs.ref }}")
+        for t in ${{ inputs.targets }}; do args+=(--target "$t"); done
+        for w in ${{ inputs.watch-paths }}; do args+=(--watch "$w"); done
+        args+=(--)
+        for m in ${{ inputs.top }}; do args+=("$m"); done
+        if "${{ github.action_path }}/detect-rtl-changes.sh" "${args[@]}"; then
+          echo "rtl-changed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "rtl-changed=false" >> "$GITHUB_OUTPUT"
+        fi
