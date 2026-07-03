@@ -22,6 +22,11 @@ inputs:
       e.g. the scripts that drive compilation/simulation themselves.'
     required: false
     default: ''
+  ref:
+    description: 'Git ref to diff. Defaults to the current working tree (including any uncommitted changes).
+      Set this to compare two arbitrary commits instead.'
+    required: false
+    default: ''
   compare-ref:
     description: 'Git ref to diff against. Defaults to the pull request base commit for pull_request events, the
       previous commit for push events, or HEAD^ otherwise.'
@@ -69,6 +74,7 @@ runs:
       run: |
         set -f # Disable globbing: `top`/`targets`/`watch-paths` are plain space-separated lists, not globs.
         args=(--compare-ref "${{ steps.compare-ref.outputs.ref }}")
+        if [ -n "${{ inputs.ref }}" ]; then args+=(--ref "${{ inputs.ref }}"); fi
         for t in ${{ inputs.targets }}; do args+=(--target "$t"); done
         for w in ${{ inputs.watch-paths }}; do args+=(--watch "$w"); done
         args+=(--)

@@ -62,6 +62,7 @@ jobs:
 | `top` | Space-separated top-level module(s) (`bender pickle --top`). Omit to hash all sources resolved by Bender. | `''` |
 | `targets` | Space-separated Bender target(s) (`bender pickle -t`). | `''` |
 | `watch-paths` | Space-separated extra path(s) checked via plain `git diff`. | `''` |
+| `ref` | Git ref to diff. Set this to compare two arbitrary commits instead of the working tree against `compare-ref`. | current working tree |
 | `compare-ref` | Git ref to diff against. | PR base commit / previous push commit / `HEAD^` |
 | `bender-version` | Bender version to install. | latest |
 
@@ -81,3 +82,6 @@ test:
     - ./detect-rtl-changes.sh -t test -t rtl -w .gitlab-ci.yml -- tb_my_module || exit 0
     - ./run_my_test.sh
 ```
+
+By default, the current working tree (including any uncommitted changes) is diffed against `origin/$CI_DEFAULT_BRANCH` (or `origin/master` if `$CI_DEFAULT_BRANCH` is undefined).
+Pass `-r/--ref` and `-c/--compare-ref` to diff two arbitrary commits.

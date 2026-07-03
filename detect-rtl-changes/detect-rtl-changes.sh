@@ -24,8 +24,11 @@
 # emits only the files reachable from it (trimming away unrelated sources),
 # with header/include files inlined via `export_include_dirs`. Hashing that
 # output gives a fingerprint of exactly what the job's outcome can depend on.
-# The fingerprint is compared between the working tree and a base git ref; if
-# they match, the job's real work can be skipped.
+# The fingerprint is compared between two git refs; if they match, the job's
+# real work can be skipped. Either side can be an arbitrary commit-ish (a
+# branch, tag, or SHA); the "head" side defaults to the current working tree
+# (including any uncommitted changes) if not given explicitly, which is the
+# common case in CI.
 #
 # Any file that is not part of the Bender source graph (e.g. the scripts that
 # drive compilation/simulation themselves) can additionally be watched with
@@ -33,10 +36,12 @@
 #
 # Usage
 # -----
-#   detect-rtl-changes.sh [-c REF] [-t TARGET]... [-w PATH]... [-- TOP...]
+#   detect-rtl-changes.sh [-c REF] [-r REF] [-t TARGET]... [-w PATH]... [-- TOP...]
 #
 #   -c, --compare-ref REF   Git ref to diff against.
 #                           (default: origin/$CI_DEFAULT_BRANCH, or origin/master)
+#   -r, --ref REF           Git ref to diff. (default: the current working tree,
+#                           including uncommitted changes)
 #   -t, --target TARGET     Bender target to include (repeatable). Forwarded
 #                           verbatim to `bender pickle -t TARGET`.
 #   -w, --watch PATH        Extra path to check for plain (non-Bender-tracked)
@@ -57,9 +62,9 @@
 #   detect-rtl-changes.sh -t test -t rtl -- tb_$TEST_MODULE || exit 0
 #
 # For GitHub Actions, use the `detect-rtl-changes` action in this repository,
-# which wraps this script and exposes a `changed` (true/false) step output
-# instead of an exit code, since GitHub Actions can only condition steps and
-# jobs on string outputs, not on another step's exit code.
+# which wraps this script and exposes an `rtl-changed` (true/false) step
+# output instead of an exit code, since GitHub Actions can only condition
+# steps and jobs on string outputs, not on another step's exit code.
 #
 # Reusability
 # -----------
@@ -70,6 +75,7 @@
 set -uo pipefail
 
 compare_ref="origin/${CI_DEFAULT_BRANCH:-master}"
+head_ref=""
 targets=()
 watch_paths=()
 
@@ -77,6 +83,8 @@ while [ $# -gt 0 ]; do
     case "$1" in
         -c|--compare-ref)
             compare_ref="$2"; shift 2 ;;
+        -r|--ref)
+            head_ref="$2"; shift 2 ;;
         -t|--target)
             targets+=("$2"); shift 2 ;;
         -w|--watch)
@@ -84,7 +92,7 @@ while [ $# -gt 0 ]; do
         --)
             shift; break ;;
         -h|--help)
-            sed -n '2,64p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+            sed -n '2,68p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         -*)
             echo "detect-rtl-changes: unknown option '$1', running job to be safe" >&2
             exit 0 ;;
@@ -112,20 +120,34 @@ run_because() {
 command -v bender >/dev/null 2>&1 || run_because "bender not found"
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || run_because "not a git repository"
 
-# Resolve the base ref locally, fetching it if necessary (CI checkouts are
-# often shallow and may not have it yet).
-if ! git rev-parse --verify --quiet "$compare_ref" >/dev/null; then
-    remote="${compare_ref%%/*}"
-    branch="${compare_ref#*/}"
-    git fetch --quiet --depth=1 "$remote" "$branch" 2>/dev/null || true
-fi
-if ! base_sha=$(git rev-parse --verify --quiet "$compare_ref"); then
+# Resolve a ref to a commit SHA locally, fetching it if necessary (CI
+# checkouts are often shallow and may not have it yet).
+resolve_ref() {
+    local ref="$1"
+    if ! git rev-parse --verify --quiet "$ref" >/dev/null; then
+        local remote="${ref%%/*}"
+        local branch="${ref#*/}"
+        git fetch --quiet --depth=1 "$remote" "$branch" 2>/dev/null || true
+    fi
+    git rev-parse --verify --quiet "$ref"
+}
+
+if ! base_sha=$(resolve_ref "$compare_ref"); then
     run_because "could not resolve compare ref '$compare_ref'"
 fi
 
-# Plain-diff watch paths (files outside the Bender source graph).
+head_sha=""
+if [ -n "$head_ref" ]; then
+    if ! head_sha=$(resolve_ref "$head_ref"); then
+        run_because "could not resolve ref '$head_ref'"
+    fi
+fi
+
+# Plain-diff watch paths (files outside the Bender source graph). With no
+# explicit head ref, this compares the base ref against the working tree
+# (including uncommitted changes); otherwise it compares the two refs.
 if [ ${#watch_paths[@]} -gt 0 ]; then
-    if ! git diff --quiet "$base_sha" -- "${watch_paths[@]}" 2>/dev/null; then
+    if ! git diff --quiet "$base_sha" ${head_sha:+"$head_sha"} -- "${watch_paths[@]}" 2>/dev/null; then
         run_because "watched path(s) changed (${watch_paths[*]})"
     fi
 fi
@@ -135,26 +157,46 @@ pickle_hash() {
         | sha256sum | cut -d' ' -f1
 }
 
-head_hash=$(pickle_hash .)
-[ -n "$head_hash" ] || run_because "failed to pickle current sources"
-
-worktree=$(mktemp -d)
-cleanup() { git worktree remove --force "$worktree" >/dev/null 2>&1; rm -rf "$worktree"; }
+worktrees=()
+cleanup() {
+    for w in "${worktrees[@]}"; do
+        git worktree remove --force "$w" >/dev/null 2>&1
+        rm -rf "$w"
+    done
+}
 trap cleanup EXIT
 
-if ! git worktree add --detach --quiet "$worktree" "$base_sha" >/dev/null 2>&1; then
+# Check out a ref into a fresh worktree, reusing already-cloned dependencies
+# instead of re-fetching them, and print the worktree's path.
+checkout_ref() {
+    local ref="$1" sha="$2" worktree
+    worktree=$(mktemp -d)
+    worktrees+=("$worktree")
+    git worktree add --detach --quiet "$worktree" "$sha" >/dev/null 2>&1 || return 1
+    [ -d .bender ] && ln -s "$(pwd)/.bender" "$worktree/.bender"
+    echo "$worktree"
+}
+
+if [ -n "$head_ref" ]; then
+    if ! head_dir=$(checkout_ref "$head_ref" "$head_sha"); then
+        run_because "could not check out '$head_ref' into a worktree"
+    fi
+else
+    head_dir="."
+fi
+head_hash=$(pickle_hash "$head_dir")
+[ -n "$head_hash" ] || run_because "failed to pickle sources at '${head_ref:-the current working tree}'"
+
+if ! base_dir=$(checkout_ref "$compare_ref" "$base_sha"); then
     run_because "could not check out '$compare_ref' into a worktree"
 fi
-# Reuse already-cloned dependencies instead of re-fetching them.
-[ -d .bender ] && ln -s "$(pwd)/.bender" "$worktree/.bender"
-
-base_hash=$(pickle_hash "$worktree")
+base_hash=$(pickle_hash "$base_dir")
 [ -n "$base_hash" ] || run_because "failed to pickle sources at '$compare_ref'"
 
 if [ "$head_hash" = "$base_hash" ]; then
-    echo "detect-rtl-changes: no sources reachable from '${tops[*]:-<all>}' changed vs $compare_ref, skipping" >&2
+    echo "detect-rtl-changes: no sources reachable from '${tops[*]:-<all>}' changed between ${head_ref:-the current working tree} and $compare_ref, skipping" >&2
     exit 1
 fi
 
-echo "detect-rtl-changes: sources reachable from '${tops[*]:-<all>}' changed vs $compare_ref, running job" >&2
+echo "detect-rtl-changes: sources reachable from '${tops[*]:-<all>}' changed between ${head_ref:-the current working tree} and $compare_ref, running job" >&2
 exit 0
