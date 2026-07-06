@@ -51,7 +51,7 @@ runs:
       shell: bash
       run: touch ./requirements.txt
     - name: Install Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.9
         cache: 'pip'
@@ -60,7 +60,7 @@ runs:
       # PIP has very noisy, uncollapsible output, making following script output hard to read
       run: pip install --disable-pip-version-check --quiet --progress-bar off requests urllib3
     - name: checkout dependent
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: ${{ inputs.org }}/${{ inputs.repo }}
         ref: ${{ inputs.base-ref }}
