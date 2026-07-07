@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add `detect-rtl-changes` action to detect whether any RTL source reachable from a given top-level module changed.
 
 ## 2.5.1 - 2026-06-09
 ### Added
