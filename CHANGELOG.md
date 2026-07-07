@@ -8,6 +8,7 @@ and this project (post v2.1.0) adheres to [Semantic Versioning](http://semver.or
 
 ## 2.5.1 - 2026-06-09
 ### Added
+- `gitlab-ci`: On pipeline failure, fetch traces of failed GitLab jobs and tail them into the GitHub Actions log.
 - `slang`: Add `reviewdog-name` variable to optionally pass a name for the reviewdog check.
 - `slang`: Add `pyslang-version` variable to pin the `pyslang` (and thereby slang) version.
 

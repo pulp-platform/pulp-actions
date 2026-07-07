@@ -39,6 +39,14 @@ inputs:
     description: 'Period of polls in seconds while pipeline is running'
     required: true
     default: 10
+  expose-error-logs:
+    description: 'Fetch and surface failed job traces in the Actions log on failure (opt-in; disable if traces contain sensitive information)'
+    required: false
+    default: 'false'
+  trace-tail-lines:
+    description: 'Number of lines to show from the end of each failed job trace'
+    required: false
+    default: 200
 
 runs:
   using: "composite"
@@ -64,3 +72,28 @@ runs:
         export SHA=${{ github.sha }}
         if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then export SHA=${{ github.event.pull_request.head.sha }}; fi
         uv run --with requests ${{ github.action_path }}/gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
+    - name: Surface and print GitLab CI error logs on failure
+      if: failure() && inputs.expose-error-logs == 'true'
+      shell: bash
+      env:
+        GITLAB_TOKEN: ${{ inputs.token }}
+        GITLAB_DOMAIN: ${{ inputs.domain }}
+        GITLAB_REPO: ${{ inputs.repo }}
+        API_VERSION: ${{ inputs.api-version }}
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        OUT_DIR: gitlab-logs
+      run: |
+        bash ${{ github.action_path }}/fetch_gitlab_logs.sh
+        shopt -s nullglob
+        for trace in "$OUT_DIR"/*.trace; do
+          job=$(basename "$trace" .trace)
+          echo "::group:: FAILED: ${job}"
+          # Trace content is untrusted; disable Actions workflow-command parsing so
+          # lines like "::error::" in the trace are printed literally, not executed.
+          # The random token prevents the trace from re-enabling parsing early.
+          tok=$(uuidgen)
+          echo "::stop-commands::${tok}"
+          tail -n ${{ inputs.trace-tail-lines }} "$trace"
+          echo "::${tok}::"
+          echo "::endgroup::"
+        done
