@@ -15,6 +15,16 @@ inputs:
       description: 'Flags to pass to slang. Must at least include the file list.'
       required: true
       default: ''
+   reviewdog-filter-mode:
+    description: 'Filter diagnostics by changed lines or files.
+      One of: added, diff_context, file, nofilter.'
+    required: false
+    default: nofilter
+   reviewdog-fail-level:
+    description: 'Minimum diagnostic severity that fails the job.
+      One of: none, any, info, warning, error.'
+    required: false
+    default: none
    reviewdog-reporter:
       description: 'Reporter to use for reviewdog. Defaults to github-check.'
       required: false
@@ -54,7 +64,6 @@ runs:
 
       - name: Run reviewdog
         shell: bash
-        continue-on-error: true
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.token }}
         run: |
@@ -62,5 +71,5 @@ runs:
             | reviewdog -f=rdjson \
                 -name=${{ inputs.reviewdog-name }} \
                 -reporter=${{ inputs.reviewdog-reporter }} \
-                -filter-mode=nofilter \
-                -fail-level=error
+                -filter-mode=${{ inputs.reviewdog-filter-mode }} \
+                -fail-level=${{ inputs.reviewdog-fail-level }}
