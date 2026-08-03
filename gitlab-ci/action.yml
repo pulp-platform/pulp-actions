@@ -63,4 +63,4 @@ runs:
       run: |
         export SHA=${{ github.sha }}
         if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then export SHA=${{ github.event.pull_request.head.sha }}; fi
-        uv run --with requests ${{ github.action_path }}/gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
+        uv run --no-project --with requests ${{ github.action_path }}/gitlab-ci.py $SHA ${{ inputs.token }} ${{ inputs.domain }} ${{ inputs.repo }} ${{ inputs.api-version }} ${{ inputs.retry-count }} ${{ inputs.retry-period }} ${{ inputs.poll-count }} ${{ inputs.poll-period }}
