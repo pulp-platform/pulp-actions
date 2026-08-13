@@ -24,6 +24,12 @@ inputs:
          reporters (e.g., spawned by a matrix) may overwrite each others results. Defaults to slang.'
       required: false
       default: 'slang'
+   fail-on-error:
+      description: 'Fail the job when slang reports an error. Defaults to false, which keeps the
+         action a pure annotator: run_slang.py exits 0 regardless of compile errors so reviewdog
+         can annotate them. Set to true to use the action as a gate.'
+      required: false
+      default: 'false'
    pyslang-version:
       description: 'pyslang version to install, as an exact version number (e.g. "11.0.0").
          pyslang bundles the slang engine and is released in lockstep with it, so this single
@@ -64,3 +70,11 @@ runs:
                 -reporter=${{ inputs.reviewdog-reporter }} \
                 -filter-mode=nofilter \
                 -fail-level=error
+
+      # After reviewdog, so the diagnostics are still annotated on a failing run.
+      # Read from the diagnostics rather than reviewdog's exit status: reviewdog
+      # needs a check-write token, which a pull request from a fork does not get.
+      - name: Fail on slang errors
+        if: inputs.fail-on-error == 'true'
+        shell: bash
+        run: uv run ${{ github.action_path }}/check_diags.py slang_diags.json
