@@ -26,11 +26,12 @@ on: [ push, pull_request, workflow_dispatch ]
 jobs:
   gitlab-ci:
     runs-on: ubuntu-latest
+    # Skip on forks due to missing secrets.
+    if: >
+      github.repository == 'pulp-platform/cheshire'
     steps:
       - name: Check Gitlab CI
         uses: pulp-platform/pulp-actions/gitlab-ci@v2.5.1 # update version as needed, not autoupdated
-        # Skip on forks or pull requests from forks due to missing secrets.
-        if: github.repository == 'pulp-platform/cheshire' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         with:
           domain: iis-git.ee.ethz.ch
           repo: github-mirror/cheshire
